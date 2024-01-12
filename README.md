@@ -20,19 +20,19 @@ Somit ist es wichtig, dass jeder Lagermitarbeiter mit Hilfe einer Warenhaltungss
 
 In Halle an der Saale gibt es
 * 40 Regalreihen, davon
-** 30 in einer Gesamtlänge von 15,20m mit 40cm-Fächern und
-** 10 in einer Gesamtlänge von 9,10m mit 20cm-Fächern.
+    * 30 in einer Gesamtlänge von 15,20m mit 40cm-Fächern und
+    * 10 in einer Gesamtlänge von 9,10m mit 20cm-Fächern.
 
 In Porta Westfalica gibt es
 * 30 Regalreihen, davon
-** 10 in einer Gesamtlänge von 15,20m mit
-*** zwei 40cm-Fächern unten und
-*** dem Rest 20cm und
-** 10 in einer Gesamtlänge von 9,10m mit 80cm-Fächern und
-** 10 in einer Gesamtlänge von 12,15m mit
-*** einer Ebene 80cm-Fächern unten,
-*** zwei Ebenen 40cm-Fächern und
-*** dem Rest 20cm-Fächern
+    * 10 in einer Gesamtlänge von 15,20m mit
+        * zwei 40cm-Fächern unten und
+        * dem Rest 20cm und
+    * 10 in einer Gesamtlänge von 9,10m mit 80cm-Fächern und
+    * 10 in einer Gesamtlänge von 12,15m mit
+        * einer Ebene 80cm-Fächern unten,
+        * zwei Ebenen 40cm-Fächern und
+        * dem Rest 20cm-Fächern
 
 Wenn neue Artikel erfasst werden, werden insbesondere die Maße erfasst. Ein einmal erfasster Artikel ist über seine Artikelnummer eindeutig auffindbar.
 
