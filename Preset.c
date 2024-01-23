@@ -2,108 +2,259 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Struktur für die Artikel
+// Struktur für ein Lagerregal
+typedef struct {
+    char id[20]; // Eindeutige Kennung des Fachs
+    int belegt;  // 0: nicht belegt, 1: belegt
+} Regalfach;
+
+// Struktur für einen Artikel
 typedef struct {
     char artikelnummer[20];
-    int fachhoehe;
+    char name[50];
     int breite;
+    int hoehe;
 } Artikel;
 
-// Struktur für die Lager
+// Struktur für ein Lager
 typedef struct {
     char name[3];
-    int regalreihen;
-    int inventory[3][3]; // [Fachhöhe][Breite]
+    Regalfach*** regale;  // 3D-Array für die Regale
+    int* belegung;        // Array für die Belegung der Fachhöhen
+    Artikel** inventar;   // Array für die inventarisierten Artikel
 } Lager;
 
-// Funktionen
-void display_inventory(Lager *lager);
-void add_article(Lager *lager, Artikel *artikel);
-void generate_random_order(Lager *lager, Artikel *order, int quantity);
-void process_order(Lager *lager, Artikel *order, int quantity);
+// Funktionen für Lagerverwaltung
+Lager* erstelle_halle_lager(void);
+Lager* erstelle_porta_lager(void);
+void artikel_anlegen(void);
+void zeige_belegung_halle(Lager* lager);
+void zeige_belegung_porta(Lager* lager);
+void belege_zufaellig(Lager* lager, Artikel* artikel);
+void erfasse_artikel(Lager* lager);
+void auslagern(Lager* lager, char artikelnummer[]);
+void zufaellige_bestellung(Lager* lager);
 
 int main() {
-    Lager halle_lager = {"HAL", 40, {{0}}};
-    Lager mi_lager = {"MI", 30, {{0}}};
+    Lager* halleLager = erstelle_halle_lager();
+    Lager* portaLager = erstelle_porta_lager();
+
+    char option;
 
     while (1) {
-        display_inventory(&halle_lager);
-        display_inventory(&mi_lager);
+        zeige_belegung_halle(halleLager);
+        printf("\n");
+        zeige_belegung_porta(portaLager);
 
-        printf("\nWas möchten Sie tun? (n)euen Artikel anlegen, Artikel (e)rfassen, Lagerbestand zufällig be(f)üllen, "
-               "zufällige (B)estellung erzeugen oder (q)uit: ");
-        char action;
-        scanf(" %c", &action);
+        printf("\n(n)euen Artikel anlegen\n");
+        printf("Artikel (e)rfassen\n");
+        printf("Artikel (v)er\x84ndern\n");
+        printf("Artikel (l)\x94schen\n");
+        printf("Lagerbestand zuf\x84llig be(f)\x81llen\n");
+        printf("Lagerbestand man(u)ell bef\x81llen\n");
+        printf("zuf\x84llige (B)estellung erzeugen\n");
+        printf("(m)anuelle Bestellung erzeugen\n");
+        printf("erfasste Bestellung (v)ersenden\n");
+        printf("erfasste Bestellung (a)bbrechen\n");
+        printf("(x) Beenden\n");
+        printf("- ");
 
-        if (action == 'q') {
-            break;
-        } else if (action == 'n') {
-            Artikel new_artikel;
-            printf("Artikelnummer: ");
-            scanf("%s", new_artikel.artikelnummer);
-            printf("Fachhöhe (cm): ");
-            scanf("%d", &new_artikel.fachhoehe);
-            printf("Breite (cm): ");
-            scanf("%d", &new_artikel.breite);
-            char lager_name[3];
-            printf("In welchem Lager (HAL/MI): ");
-            scanf("%s", lager_name);
+        scanf(" %c", &option);
 
-            if (strcmp(lager_name, "HAL") == 0) {
-                add_article(&halle_lager, &new_artikel);
-            } else if (strcmp(lager_name, "MI") == 0) {
-                add_article(&mi_lager, &new_artikel);
-            } else {
-                printf("Ungültiges Lager.\n");
-            }
-        } else if (action == 'f') {
-            int quantity;
-            printf("Wie viele Artikel sollen eingelagert werden? ");
-            scanf("%d", &quantity);
-            Artikel order[quantity];
-            generate_random_order(&halle_lager, order, quantity);
-            generate_random_order(&mi_lager, order, quantity);
-        } else if (action == 'B') {
-            Artikel order[10];
-            int quantity;
-            printf("Wie viele Artikel sollen bestellt werden? ");
-            scanf("%d", &quantity);
-            generate_random_order(&halle_lager, order, quantity);
-            generate_random_order(&mi_lager, order, quantity);
-            process_order(&halle_lager, order, quantity);
-            process_order(&mi_lager, order, quantity);
-        } else {
-            printf("Ungültige Aktion.\n");
+        switch (option) {
+            case 'n':
+                artikel_anlegen();
+                break;
+            case 'e':
+                erfasse_artikel();
+            case 'a':
+                printf("Geben Sie die Artikelnummer ein: ");
+                char artikelnummer[20];
+                scanf("%s", artikelnummer);
+                auslagern(halleLager, artikelnummer);
+                auslagern(portaLager, artikelnummer);
+                break;
+            case 'b':
+                zufaellige_bestellung(halleLager);
+                zufaellige_bestellung(portaLager);
+                break;
+            case 'x':
+                free(halleLager);
+                free(portaLager);
+                exit(0);
+            default:
+                printf("Ungültige Option. Bitte erneut wählen.\n");
         }
     }
 
     return 0;
 }
 
-void display_inventory(Lager *lager) {
-    printf("\n%s\n%-10s%-20s", lager->name, "Artikel", "Belegung");
-    for (int i = 0; i < 3; i++) {
-        printf("\n%3dcm:", i * 20);
-        int total_width = 0;
-        for (int j = 0; j < 3; j++) {
-            float percentage = (float)lager->inventory[i][j] / lager->regalreihen * 100;
-            printf("%3dcm: %3.0f%% | ", j * 20, percentage);
-            total_width += j * 20 * lager->inventory[i][j];
+// Funktion zum Erstellen des Halle-Lagers
+Lager* erstelle_halle_lager() {
+    Lager* halleLager = (Lager*)malloc(sizeof(Lager));
+    strcpy(halleLager->name, "HAL");
+
+    int regalreihen = 40;
+    int regalfachbreite = 3;
+    int regalfachtiefe = 1.2;  // In Metern
+
+    // Höhen der Ebenen
+    int ebenenHoehen[] = {40, 20};
+
+    // Berechnung der maximalen Regalhöhe
+    int maxRegalhoehe = 255;  // Maximal zulässige Höhe in cm
+    int regalhoehe = 0;
+    for (int i = 0; i < sizeof(ebenenHoehen) / sizeof(ebenenHoehen[0]); i++) {
+        regalhoehe += ebenenHoehen[i];
+        if (regalhoehe > maxRegalhoehe) {
+            // Wenn die Höhe die Maximalgrenze überschreitet, brechen wir ab
+            printf("Fehler: Die Höhe der Ebenen überschreitet die Maximalhöhe des Regals.\n");
+            exit(EXIT_FAILURE);
         }
-        printf("\nGesamtbreite: %dcm", total_width);
     }
-    printf("\n");
+
+    // Anzahl der Ebenen im Regal
+    int anzahlEbenen = sizeof(ebenenHoehen) / sizeof(ebenenHoehen[0]);
+
+    halleLager->regale = (Regalfach***)malloc(anzahlEbenen * sizeof(Regalfach**));
+    for (int i = 0; i < anzahlEbenen; i++) {
+        halleLager->regale[i] = (Regalfach**)malloc(regalreihen * sizeof(Regalfach*));
+        for (int j = 0; j < regalreihen; j++) {
+            int breite = (i == 0) ? 40 : 20;  // Nur die erste Ebene hat 40cm-Fächer
+
+            halleLager->regale[i][j] = (Regalfach*)malloc(breite * sizeof(Regalfach));
+            for (int k = 0; k < breite; k++) {
+                sprintf(halleLager->regale[i][j][k].id, "%d-%d-%d", i + 1, j + 1, k + 1);
+                halleLager->regale[i][j][k].belegt = 0;
+            }
+        }
+    }
+
+    // Initialisiere Artikelanzahl und Belegung
+    halleLager->belegung = (int*)calloc(anzahlEbenen, sizeof(int));
+    halleLager->inventar = NULL;
+
+    return halleLager;
 }
 
-void add_article(Lager *lager, Artikel *artikel) {
-    lager->inventory[artikel->fachhoehe / 20][artikel->breite / 20]++;
-    printf("Artikel %s eingelagert im %dcm Fach, %dcm Breite.\n", artikel->artikelnummer, artikel->fachhoehe, artikel->breite);
+// Funktion zum Erstellen des Porta Westfalica-Lagers
+Lager* erstelle_porta_lager() {
+    Lager* portaLager = (Lager*)malloc(sizeof(Lager));
+    strcpy(portaLager->name, "MI");
+
+    int regalreihen = 30;
+    int regalfachbreite = 3;
+    int regalfachtiefe = 1.2;  // In Metern
+
+    // Höhen der Ebenen
+    int ebenenHoehen[] = {80, 40, 20};
+
+    // Berechnung der maximalen Regalhöhe
+    int maxRegalhoehe = 255;  // Maximal zulässige Höhe in cm
+    int regalhoehe = 0;
+    for (int i = 0; i < sizeof(ebenenHoehen) / sizeof(ebenenHoehen[0]); i++) {
+        regalhoehe += ebenenHoehen[i];
+        if (regalhoehe > maxRegalhoehe) {
+            // Wenn die Höhe die Maximalgrenze überschreitet, brechen wir ab
+            printf("Fehler: Die Höhe der Ebenen überschreitet die Maximalhöhe des Regals.\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    // Anzahl der Ebenen im Regal
+    int anzahlEbenen = sizeof(ebenenHoehen) / sizeof(ebenenHoehen[0]);
+
+    portaLager->regale = (Regalfach***)malloc(anzahlEbenen * sizeof(Regalfach**));
+    for (int i = 0; i < anzahlEbenen; i++) {
+        portaLager->regale[i] = (Regalfach**)malloc(regalreihen * sizeof(Regalfach*));
+        for (int j = 0; j < regalreihen; j++) {
+            int breite;
+            if (j < 10) {
+                breite = 40;
+            } else if (j < 20) {
+                breite = 80;
+            } else {
+                breite = 20;
+            }
+
+            portaLager->regale[i][j] = (Regalfach*)malloc(breite * sizeof(Regalfach));
+            for (int k = 0; k < breite; k++) {
+                sprintf(portaLager->regale[i][j][k].id, "%d-%d-%d", i + 1, j + 1, k + 1);
+                portaLager->regale[i][j][k].belegt = 0;
+            }
+        }
+    }
+
+    portaLager->belegung = (int*)calloc(anzahlEbenen, sizeof(int));
+    portaLager->inventar = NULL;
+
+    return portaLager;
 }
 
-void generate_random_order(Lager *lager, Artikel *order, int quantity) {
-    // Implementierung für die zufällige Bestellung
+void artikel_anlegen(void) {
+    return;
 }
 
-void process_order(Lager *lager, Artikel *order, int quantity) {
-    // Implementierung für die Verarbeitung der Bestellung
+// Funktion zur Anzeige der Belegung für Halle
+void zeige_belegung_halle(Lager* lager) {
+    printf("%s\nArtikel: %d\nBelegung\n", lager->name, lager->belegung[0] + lager->belegung[1]);
+
+    int hoehen[] = {40, 20};  // Höhen der Fächer
+
+    for (int i = 0; i < 2; i++) {
+        int belegteFacher = 0;
+
+        for (int j = 0; j < lager->belegung[i]; j++) {
+            for (int k = 0; k < hoehen[i]; k++) {
+                if (lager->regale[i][j][k].belegt) {
+                    belegteFacher++;
+                }
+            }
+        }
+
+        int breite = (i == 0) ? 40 : 20;
+        printf("    %dcm: %d%%\n", hoehen[i], (lager->belegung[i] != 0) ? (belegteFacher * 100) / (breite * lager->belegung[i]) : 0);
+    }
+}
+
+// Funktion zur Anzeige der Belegung für Porta Westfalica
+void zeige_belegung_porta(Lager* lager) {
+    printf("%s\nArtikel: %d\nBelegung\n", lager->name, lager->belegung[0] + lager->belegung[1] + lager->belegung[2]);
+
+    int hoehen[] = {40, 20, 80};  // Höhen der Fächer
+
+    for (int i = 0; i < 3; i++) {
+        int belegteFacher = 0;
+
+        for (int j = 0; j < lager->belegung[i]; j++) {
+            for (int k = 0; k < hoehen[i]; k++) {
+                if (lager->regale[i][j][k].belegt) {
+                    belegteFacher++;
+                }
+            }
+        }
+
+        printf("    %dcm: %d%%\n", hoehen[i], (lager->belegung[i] != 0) ? (belegteFacher * 100) / (hoehen[i] * lager->belegung[i]) : 0);
+    }
+}
+
+// Funktion zum zufälligen Belegen eines Lagers
+void belege_zufaellig(Lager* lager, Artikel* artikel) {
+    // Implementierung erforderlich, abhängig von den genauen Anforderungen
+}
+
+// Funktion zum Erfassen eines neuen Artikels
+void erfasse_artikel(Lager* lager) {
+    // Implementierung erforderlich, abhängig von den genauen Anforderungen
+}
+
+// Funktion zum Auslagern eines Artikels
+void auslagern(Lager* lager, char artikelnummer[]) {
+    // Implementierung erforderlich, abhängig von den genauen Anforderungen
+}
+
+// Funktion zur Erzeugung einer zufälligen Bestellung
+void zufaellige_bestellung(Lager* lager) {
+    // Implementierung erforderlich, abhängig von den genauen Anforderungen
 }

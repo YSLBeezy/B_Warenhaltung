@@ -47,7 +47,7 @@ Das typische Katzenfutter ist in kleinen 85g-Tütchen verpackt. 10 Tütchen bild
 
 ANFORDERUNGEN AN DIE PRÜFUNGSLEISTUNG
 
-Ihr Warenhaltung soll eine Pseudo-grafische Ausgabe auf der Konsole haben. Diese soll Texte und Grafikähnliche Objekte immer an der gleichen Stelle anzeigen. (Beispiel weiter unten)
+Ihre Warenhaltung soll eine Pseudo-grafische Ausgabe auf der Konsole haben. Diese soll Texte und Grafikähnliche Objekte immer an der gleichen Stelle anzeigen. (Beispiel weiter unten)
 
 Es müssen neue Artikel definiert werden können.
 
