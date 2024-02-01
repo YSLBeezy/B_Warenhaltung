@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define BWHT "\e[1;37m"
+#define RESET "\e[0m"
+
 // Struktur für ein Lagerregal
 typedef struct {
     char id[20]; // Eindeutige Kennung des Fachs
@@ -14,6 +17,7 @@ typedef struct {
     char name[50];
     int breite;
     int hoehe;
+    int tiefe;
 } Artikel;
 
 // Struktur für ein Lager
@@ -24,9 +28,15 @@ typedef struct {
     Artikel** inventar;   // Array für die inventarisierten Artikel
 } Lager;
 
+// Globales Array für die gespeicherten Artikel
+Artikel* lagerArtikel = NULL;
+int anzahlArtikel = 0;
+
 // Funktionen für Lagerverwaltung
 Lager* erstelle_halle_lager(void);
 Lager* erstelle_porta_lager(void);
+void menu(void);
+void clear_screen(void);
 void artikel_anlegen(void);
 void zeige_belegung_halle(Lager* lager);
 void zeige_belegung_porta(Lager* lager);
@@ -35,29 +45,18 @@ void erfasse_artikel(Lager* lager);
 void auslagern(Lager* lager, char artikelnummer[]);
 void zufaellige_bestellung(Lager* lager);
 
+
+Lager* halleLager = NULL;
+Lager* portaLager = NULL;
+
 int main() {
-    Lager* halleLager = erstelle_halle_lager();
-    Lager* portaLager = erstelle_porta_lager();
+    halleLager = erstelle_halle_lager();
+    portaLager = erstelle_porta_lager();
 
     char option;
 
     while (1) {
-        zeige_belegung_halle(halleLager);
-        printf("\n");
-        zeige_belegung_porta(portaLager);
-
-        printf("\n(n)euen Artikel anlegen\n");
-        printf("Artikel (e)rfassen\n");
-        printf("Artikel (v)er\x84ndern\n");
-        printf("Artikel (l)\x94schen\n");
-        printf("Lagerbestand zuf\x84llig be(f)\x81llen\n");
-        printf("Lagerbestand man(u)ell bef\x81llen\n");
-        printf("zuf\x84llige (B)estellung erzeugen\n");
-        printf("(m)anuelle Bestellung erzeugen\n");
-        printf("erfasste Bestellung (v)ersenden\n");
-        printf("erfasste Bestellung (a)bbrechen\n");
-        printf("(x) Beenden\n");
-        printf("- ");
+        menu();
 
         scanf(" %c", &option);
 
@@ -66,7 +65,20 @@ int main() {
                 artikel_anlegen();
                 break;
             case 'e':
-                erfasse_artikel();
+                clear_screen();
+                printf("In welchem Lager soll der Artikel eingelagert werden?\n\n");
+                printf("\t1) Halle\n");
+                printf("\t2) Porta Westfalica\n\n\t- ");
+                char lagerAuswahl;
+                scanf(" %c", &lagerAuswahl);
+                switch(lagerAuswahl) {
+                    case '1':
+                        erfasse_artikel(halleLager);
+                        break;
+                    case '2':
+                        erfasse_artikel(portaLager);
+                        break;
+                }
             case 'a':
                 printf("Geben Sie die Artikelnummer ein: ");
                 char artikelnummer[20];
@@ -88,6 +100,45 @@ int main() {
     }
 
     return 0;
+}
+
+void menu(void) {
+    clear_screen();
+    zeige_belegung_halle(halleLager);
+    printf("\n");
+    zeige_belegung_porta(portaLager);
+
+    printf("\n(n)euen Artikel anlegen\n");
+    printf("Artikel (e)rfassen\n");
+    printf("Artikel (v)er\x84ndern\n");
+    printf("Artikel (l)\x94schen\n");
+    printf("Lagerbestand zuf\x84llig be(f)\x81llen\n");
+    printf("Lagerbestand man(u)ell bef\x81llen\n");
+    printf("zuf\x84llige (B)estellung erzeugen\n");
+    printf("(m)anuelle Bestellung erzeugen\n");
+    printf("erfasste Bestellung (v)ersenden\n");
+    printf("erfasste Bestellung (a)bbrechen\n");
+    printf("(x) Beenden\n");
+    printf("- ");
+    fflush(stdout);
+    return;
+}
+
+void warte(void) {
+    int z;
+
+    getchar();
+    printf("\n---> Enter");
+    fflush(stdout);
+    fflush(stdin);
+    z = getchar();
+    z++;
+    return;
+}
+
+void clear_screen(void) {
+    system("@cls||clear");
+    return;
 }
 
 // Funktion zum Erstellen des Halle-Lagers
@@ -192,13 +243,46 @@ Lager* erstelle_porta_lager() {
     return portaLager;
 }
 
-void artikel_anlegen(void) {
+void artikel_anlegen() {
+    clear_screen();
+    printf("Artikel anlegen:\n\n");
+
+    Artikel neuerArtikel;
+
+    printf("\tArtikelnummer:\t");
+    scanf("%s", neuerArtikel.artikelnummer);
+
+    printf("\tName:\t\t");
+    scanf("%s", neuerArtikel.name);
+
+    printf("\tBreite:\t\t");
+    scanf("%d", &neuerArtikel.breite);
+
+    printf("\tH\x94he:\t\t");
+    scanf("%d", &neuerArtikel.hoehe);
+
+    printf("\tTiefe:\t\t");
+    scanf("%d", &neuerArtikel.tiefe);
+
+    // Dynamisch Speicherplatz für das Inventar vergrößern
+    lagerArtikel = (Artikel*)realloc(lagerArtikel, (anzahlArtikel + 1) * sizeof(Artikel));
+    if (lagerArtikel == NULL) {
+        printf("Fehler: Speicher konnte nicht allokiert werden.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Artikel hinzufügen
+    lagerArtikel[anzahlArtikel++] = neuerArtikel;
+
+    printf("\n\nArtikel erfolgreich angelegt!\n");
+    warte();
+
     return;
 }
 
 // Funktion zur Anzeige der Belegung für Halle
 void zeige_belegung_halle(Lager* lager) {
-    printf("%s\nArtikel: %d\nBelegung\n", lager->name, lager->belegung[0] + lager->belegung[1]);
+    printf(BWHT "%s" RESET "\nArtikel: %d\nBelegung\n", lager->name, lager->belegung[0] + lager->belegung[1]);
 
     int hoehen[] = {40, 20};  // Höhen der Fächer
 
@@ -216,11 +300,12 @@ void zeige_belegung_halle(Lager* lager) {
         int breite = (i == 0) ? 40 : 20;
         printf("    %dcm: %d%%\n", hoehen[i], (lager->belegung[i] != 0) ? (belegteFacher * 100) / (breite * lager->belegung[i]) : 0);
     }
+    printf("-----------------------------------");
 }
 
 // Funktion zur Anzeige der Belegung für Porta Westfalica
 void zeige_belegung_porta(Lager* lager) {
-    printf("%s\nArtikel: %d\nBelegung\n", lager->name, lager->belegung[0] + lager->belegung[1] + lager->belegung[2]);
+    printf(BWHT "%s" RESET "\nArtikel: %d\nBelegung\n", lager->name, lager->belegung[0] + lager->belegung[1] + lager->belegung[2]);
 
     int hoehen[] = {40, 20, 80};  // Höhen der Fächer
 
@@ -237,6 +322,7 @@ void zeige_belegung_porta(Lager* lager) {
 
         printf("    %dcm: %d%%\n", hoehen[i], (lager->belegung[i] != 0) ? (belegteFacher * 100) / (hoehen[i] * lager->belegung[i]) : 0);
     }
+    printf("-----------------------------------");
 }
 
 // Funktion zum zufälligen Belegen eines Lagers
