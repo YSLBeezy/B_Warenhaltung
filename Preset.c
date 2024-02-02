@@ -40,6 +40,7 @@ void clear_screen(void);
 void artikel_anlegen(void);
 void zeige_belegung_halle(Lager* lager);
 void zeige_belegung_porta(Lager* lager);
+void artikel_verändern(void);
 void belege_zufaellig(Lager* lager, Artikel* artikel);
 void erfasse_artikel(Lager* lager);
 void auslagern(Lager* lager, char artikelnummer[]);
@@ -78,8 +79,15 @@ int main() {
                     case '2':
                         erfasse_artikel(portaLager);
                         break;
+                    default:
+                        printf("Ungültige Option. Bitte erneut wählen.\n");
                 }
+                break;
+            case 'v':
+                artikel_verändern();
+                break;
             case 'a':
+                clear_screen();
                 printf("Geben Sie die Artikelnummer ein: ");
                 char artikelnummer[20];
                 scanf("%s", artikelnummer);
@@ -128,7 +136,7 @@ void warte(void) {
     int z;
 
     getchar();
-    printf("\n---> Enter");
+    printf("\n---> Weiter");
     fflush(stdout);
     fflush(stdin);
     z = getchar();
@@ -325,6 +333,77 @@ void zeige_belegung_porta(Lager* lager) {
     printf("-----------------------------------");
 }
 
+void artikel_verändern(void) {
+    clear_screen();
+    char artikelnummer[20];
+    printf("Geben Sie die Artikelnummer des zu ver\x84ndernden Artikels ein: ");
+    scanf("%s", artikelnummer);
+
+    Artikel artikel;
+
+    for (int i = 0; i < anzahlArtikel; i++) {
+        if (strcmp(lagerArtikel[i].artikelnummer, artikelnummer) == 0) {
+            artikel = lagerArtikel[i];
+            break;
+        }
+    }
+    clear_screen();
+    printf("Gefundener Artikel:\n\n");
+    printf("\tArtikelnummer: %s\n", artikel.artikelnummer);
+    printf("\tName: %s\n", artikel.name);
+    printf("\tBreite: %d\n", artikel.breite);
+    printf("\tH\x94he: %d\n", artikel.hoehe);
+    printf("\tTiefe: %d\n\n", artikel.tiefe);
+    warte();
+
+    int auswahl;
+    clear_screen();
+    printf("Welches Attribut soll ver\x84ndert werden?\n\n");
+    printf("\t1) Name\n");
+    printf("\t2) Breite\n");
+    printf("\t3) H\x94he\n");
+    printf("\t0) Abbrechen\n");
+    printf("\n\t- ");
+    scanf("%d", &auswahl);
+    
+    switch (auswahl) {
+        case 1:
+            printf("\nGeben Sie den neuen Namen ein: ");
+            scanf("%s", &artikel.name);
+            break;
+        case 2:
+            printf("\nGeben Sie die neue Breite ein: ");
+            scanf("%d", &artikel.breite);
+            break;
+        case 3:
+            printf("\nGeben Sie die neue H\x94he ein: ");
+            scanf("%d", &artikel.hoehe);
+            break;
+        case 0:
+            printf("\nVer\x84nderung abgebrochen.\n");
+            return;
+        default:
+            printf("\nUng\x81ltige Auswahl.\n");
+            return;
+    }
+    
+    for (int i = 0; i < anzahlArtikel; i++) {
+        if (strcmp(lagerArtikel[i].artikelnummer, artikelnummer) == 0) {
+            lagerArtikel[i] = artikel;
+            clear_screen();
+            printf("Artikel erfolgreich aktualisiert!\n\n");
+            printf("\tArtikelnummer: %s\n", artikel.artikelnummer);
+            printf("\tName: %s\n", artikel.name);
+            printf("\tBreite: %d\n", artikel.breite);
+            printf("\tH\x94he: %d\n", artikel.hoehe);
+            printf("\tTiefe: %d\n\n", artikel.tiefe);
+        }
+    }
+
+    warte();
+    return;
+}
+
 // Funktion zum zufälligen Belegen eines Lagers
 void belege_zufaellig(Lager* lager, Artikel* artikel) {
     // Implementierung erforderlich, abhängig von den genauen Anforderungen
@@ -332,7 +411,11 @@ void belege_zufaellig(Lager* lager, Artikel* artikel) {
 
 // Funktion zum Erfassen eines neuen Artikels
 void erfasse_artikel(Lager* lager) {
+    clear_screen();
+    printf("Not Implemented");
+    warte();
     // Implementierung erforderlich, abhängig von den genauen Anforderungen
+    return;
 }
 
 // Funktion zum Auslagern eines Artikels
